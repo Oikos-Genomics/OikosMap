@@ -58,7 +58,7 @@ Important outputs are:
 
 ### Flowchart
 
-<img title="a title" alt="Alt text" src="./ONTeater_flowchart.png" width=800>
+<img title="OikosMap flowchart" alt="A graphic indicating the process from raw read files to a variant file." src="images/OikosMap_flowchart.png">
 
 
 ## Known limitations
