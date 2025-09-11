@@ -31,7 +31,7 @@ The following table documents all options specific to `OikosMap`:
 | `--indlist` | `null` | String | A text file containing the prefix of every paired read file, where each name is on a newline. See [testing](#testing) for an example. **Mandatory**. |
 | `--indir` | `null` | String | The path to the read files you intend to map. Names *must* agree with those in `--indlist`, and files *must* be properly paired. **Mandatory**. |
 | `--refseq` | `null` | String | The fasta file you intend to map to. If unindexed, it will be indexed in-place with `samtools faidx`. **Mandatory**. |
-| `--threads` | `nproc/2` | String | The fasta file you intend to map to. If unindexed, it will be indexed in-place with `samtools faidx`. **Mandatory**. |
+| `--threads` | `nproc/2` | Int | The number of threads available to the program. Defaults to $\frac{1}{2}$ the number on the host machine. |
 | `--prefix` | `out` | String | The name of the output directory and vcf file. |
 
 
