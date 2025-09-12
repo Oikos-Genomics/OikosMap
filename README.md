@@ -87,7 +87,7 @@ It does three things:
 
 #### 1. Creating dummy input files
 
-```
+```shell
 # Create dummy input files
 
 mkdir dummy_readfiles
@@ -105,12 +105,13 @@ echo -e "ind1\nind2\nind3" > dummy_indlist.txt
 
 #### 2. Dry-run `OikosMap`
 
-```
+```shell
 nextflow run OikosMap.nf -stub-run --indlist dummy_indlist.txt --indir dummy_readfiles --refseq dummy_refseq/refseq.fa --prefix dummy_out
 ```
 
 #### 3. Cleanup
-```
+
+```shell
 rm -r dummy*
 echo "Stub ran successfully."
 ```

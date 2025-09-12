@@ -40,18 +40,56 @@ def print_help() {
     """.stripIndent()
 }
 
-include { FASTP } from './modules/mapping_processes.nf'
+include { INDEX_REFSEQ } from './modules/mapping_processes.nf'
 
 workflow {
-// INTRODUCTORY BEHAVIOR
+    // INTRODUCTORY BEHAVIOR
     if (params.help) {
         print_help()
         exit 0
     }
+
     //CHECK INPUT PARAMETERS:
     if ( params.indlist == null | params.indir == null | params.refseq == null ) {
-        error "One or more missing arguments. See --help for usage instuctions." 
+        def input_errors = []
+        if (params.indlist == null) {
+            input_errors.add("\n\t--indlist not provided")
+        }
+
+        if (params.indir == null) {
+            input_errors.add("--indir not provided")
+        }
+
+        if (params.refseq == null) {
+            input_errors.add("--refseq not provided")
+        }
+
+        if (input_errors.size() > 0) {
+            error("Input files missing: ${input_errors.join('\n\t')}\nSee --help for usage instructions.")
+        }
     }
 
-    FASTP()
+    // PARSE INPUTS
+
+    //check for backslash and existence on --indir
+    if ( params.indir.substring(params.indir.length() - 1, params.indir.length()) != '/' ) { 
+        clean_indir=params.indir+'/'
+        } else { clean_indir = params.indir }
+
+    fq_patterns = [
+        clean_indir+'*{R1,R2}.fq.gz',
+        clean_indir+'*{1,2}.fq.gz',
+        clean_indir+'*{R1,R2}.fastq.gz',
+        clean_indir+'*{1,2}.fastq.gz',
+        clean_indir+'*{R1,R2}.fq',
+        clean_indir+'*{1,2}.fq',
+        clean_indir+'*{R1,R2}.fastq',
+        clean_indir+'*{1,2}.fastq',
+    ]
+
+    reads_ch = Channel.fromFilePairs(fq_patterns)
+    reads_ch.view()
+
+    INDEX_REFSEQ()
+
 }
