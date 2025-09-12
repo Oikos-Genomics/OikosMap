@@ -3,6 +3,18 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# OSX-associated files
+.DS_Store
+
+# Samtools index files
+*amb
+*ann
+*bwt
+*fai
+*pac
+*sa
+
+
 # User-specific files
 *.rsuser
 *.suo
