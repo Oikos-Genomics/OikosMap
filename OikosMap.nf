@@ -7,14 +7,6 @@
  * Pipeline input params supplied from nextflow.config
  */
 
-    help = false
-    indlist = null
-    indir = null
-    refseq = null 
-    threads = max_cpus/2
-    prefix = out
-
-
 log.info """\
     O I K O S M A P - N F   P I P E L I N E
     ===================================
@@ -23,7 +15,7 @@ log.info """\
     Directory of readfiles      : ${params.indir}
     Input refseq                : ${params.refseq}
     Number of threads           : ${params.threads}
-    Output prefix               : ${params.out}
+    Output prefix               : ${params.prefix}
     """
     .stripIndent()
 
@@ -48,10 +40,7 @@ def print_help() {
     """.stripIndent()
 }
 
-//include { REMOVE_CONTAMINANTS } from './modules/processes.nf' //initial filtering for contaminants
-//include { NANOPLOT as NANOPLOT_RAW; NANOPLOT as NANOPLOT_TRIM; NANOFILT;  //nanoplot-related
-//} from './modules/mapping_processes.nf'
-//include { VARIANT_MPILEUP_CALL } from './modules/variant_processes.nf' //merged assembly-related
+include { FASTP } from './modules/mapping_processes.nf'
 
 workflow {
 // INTRODUCTORY BEHAVIOR
@@ -63,4 +52,6 @@ workflow {
     if ( params.indlist == null | params.indir == null | params.refseq == null ) {
         error "One or more missing arguments. See --help for usage instuctions." 
     }
+
+    FASTP()
 }

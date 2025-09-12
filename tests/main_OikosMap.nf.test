@@ -1,0 +1,32 @@
+nextflow_pipeline {
+
+    name "Test Workflow OikosMap.nf"
+    script "OikosMap.nf"
+
+    test("Should abort pipeline if inputs are missing") {
+        when {
+            params {
+                indlist = "$baseDir/testdata/indlist.txt"
+                indir = "$baseDir/testdata/readfiles"
+                refseq = "null"
+                //outdir = "$outputDir"
+            }
+        }
+        then {
+            assert workflow.failed
+        }
+    }
+    test("Should execute complete pipeline using testdata") {
+        when {
+            params {
+                indlist = "$baseDir/testdata/indlist.txt"
+                indir = "$baseDir/testdata/readfiles"
+                refseq = "$baseDir/testdata/refseq/Chlamydotis_macqueenii_Ctg1_15kbp.fa"
+                //outdir = "$outputDir"
+            }
+        }
+        then {
+            assert workflow.success
+        }
+    }
+}
