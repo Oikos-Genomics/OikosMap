@@ -22,7 +22,7 @@ nextflow run OikosMap.nf --indlist <names_of_inds.txt> --indir </path/to/directo
 ## Options
 
 All native options in `NextFlow` are usable in `OikosMap` - their documentation can be found [here](https://www.nextflow.io/docs/latest/cli.html).
-`--trace` and `--report` are useful for providing usage stats, and the author recommends enabling them.
+`-with-trace` and `-with-report` are useful for providing usage stats, and the author recommends enabling them.
 The following table documents all options specific to `OikosMap`:
 
 | Option | Default | Data type | Description |
@@ -30,7 +30,7 @@ The following table documents all options specific to `OikosMap`:
 | `--help`  | `FALSE` | Flag | Set to print a help message and exit. |
 | `--indlist` | `null` | String | A text file containing the prefix of every paired read file, where each name is on a newline. See [testing](#testing) for an example. **Mandatory**. |
 | `--indir` | `null` | String | The path to the read files you intend to map. Names *must* agree with those in `--indlist`, and files *must* be properly paired. **Mandatory**. |
-| `--refseq` | `null` | String | The fasta file you intend to map to. If unindexed, it will be indexed in-place with `samtools faidx`. **Mandatory**. |
+| `--refseq` | `null` | String | The fasta file you intend to map to. If unindexed, it will be indexed in-place with `bwa index` and `samtools faidx`. **Mandatory**. |
 | `--threads` | `nproc/2` | Int | The number of threads available to the program. Defaults to $\frac{1}{2}$ the number on the host machine. |
 | `--prefix` | `out` | String | The name of the output directory and vcf file. |
 
@@ -40,8 +40,8 @@ The following table documents all options specific to `OikosMap`:
 `OikosMap` initially checks that all files in `--indlist` are present in `--indir`, throwing an error if they are not.
 Assuming inputs are fine, it then trims files with `fastp` (v.1.0.1, [Chen et al. 2018](https://academic.oup.com/bioinformatics/article/34/17/i884/5093234)) on default settings.
 
-If the refseq is not indexed, we use `samtools faidx`(v.1.18, [Daneck et al. 2021](https://academic.oup.com/gigascience/article/10/2/giab008/6137722)) to do so.
-Trimmed files are then mapped to the provided indexed `--refseq` with `bwa mem` (v.0.7.17-r1188, [Li 2013](https://arxiv.org/abs/1303.3997)), and the output bamfiles are then post-processed with `samtools`.
+If the refseq is not indexed, we use `bwa index` (v.0.7.17-r1188, [Li 2013](https://arxiv.org/abs/1303.3997)) and `samtools faidx`(v.1.18, [Daneck et al. 2021](https://academic.oup.com/gigascience/article/10/2/giab008/6137722)) to do so.
+Trimmed files are then mapped to the provided indexed `--refseq` with `bwa mem`, and the output bamfiles are then post-processed with `samtools`.
 
 Once mapping finishes, all `bam` files are fed into `bcftools mpileup/call` (v.1.15.1, [Daneck et al. 2021](https://academic.oup.com/gigascience/article/10/2/giab008/6137722)) to produce a vcf.
 
@@ -106,7 +106,7 @@ echo -e "ind1\nind2\nind3" > dummy_indlist.txt
 #### 2. Dry-run `OikosMap`
 
 ```
-nextflow -stub-run OikosMap.nf --indlist dummy_indlist.txt --indir dummy_readfiles --refseq dummy_refseq/refseq.fa --prefix dummy_out
+nextflow run OikosMap.nf -stub-run --indlist dummy_indlist.txt --indir dummy_readfiles --refseq dummy_refseq/refseq.fa --prefix dummy_out
 ```
 
 #### 3. Cleanup
