@@ -6,7 +6,7 @@
 process INDEX_REFSEQ {
     tag "Indexing refseq with bwa index"
     cpus 10
-    conda 'bioconda::fastp'
+    conda 'bioconda::bwa'
 
     //input:
     //tuple val(sample_id), val(trim_status), path(reads)

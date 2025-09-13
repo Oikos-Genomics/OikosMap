@@ -19,11 +19,12 @@ log.info """\
     """
     .stripIndent()
 
-def print_help() {
-    //Prints out OikosMap instructions.
-    log.info"""
+include { PRINT_HELP; CHECK_PARAMS_FOR_NULL; CHECK_FILE_FOR_EXISTENCE } from './modules/housekeeping_processes.nf'
+include { INDEX_REFSEQ } from './modules/mapping_processes.nf'
+
+help_message='''
     Basic Usage:
-    nextflow run OikosMap.nf [--ONT_raw OR --PB_raw]
+    nextflow run OikosMap.nf --indlist <names_of_inds.txt> --indir </path/to/directory/with/reads/> --refseq <refseq.fa> --prefix <output_prefix>
     
     Options:
         --help          Flag. Show this help message and exit
@@ -36,42 +37,21 @@ def print_help() {
     Notes:
         Nearly all options are mandatory.
         Any errors (of which there are probably many) should be reported to https://github.com/BirdmanRidesAgain/OikosMap/issues.
-    
-    """.stripIndent()
-}
-
-include { INDEX_REFSEQ } from './modules/mapping_processes.nf'
+    '''
 
 workflow {
     // INTRODUCTORY BEHAVIOR
     if (params.help) {
-        print_help()
-        exit 0
-    }
-
-    //CHECK INPUT PARAMETERS:
-    if ( params.indlist == null | params.indir == null | params.refseq == null ) {
-        def input_errors = []
-        if (params.indlist == null) {
-            input_errors.add("\n\t--indlist not provided")
-        }
-
-        if (params.indir == null) {
-            input_errors.add("--indir not provided")
-        }
-
-        if (params.refseq == null) {
-            input_errors.add("--refseq not provided")
-        }
-
-        if (input_errors.size() > 0) {
-            error("Input files missing: ${input_errors.join('\n\t')}\nSee --help for usage instructions.")
-        }
+        PRINT_HELP(help_message)
+        exit 10
     }
 
     // PARSE INPUTS
+    CHECK_PARAMS_FOR_NULL([params.indlist, params.indir, params.refseq])
+    CHECK_FILE_FOR_EXISTENCE([params.indlist, params.indir, params.refseq])
 
-    //check for backslash and existence on --indir
+    //Add a backslash to --indir if there's not one
+    clean_indir = ""
     if ( params.indir.substring(params.indir.length() - 1, params.indir.length()) != '/' ) { 
         clean_indir=params.indir+'/'
         } else { clean_indir = params.indir }
@@ -90,6 +70,6 @@ workflow {
     reads_ch = Channel.fromFilePairs(fq_patterns)
     reads_ch.view()
 
-    INDEX_REFSEQ()
+    //INDEX_REFSEQ()
 
 }

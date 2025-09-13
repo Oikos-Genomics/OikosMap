@@ -1,19 +1,55 @@
 nextflow_pipeline {
 
-    name "Test Workflow OikosMap.nf"
+    name "Test input checking in OikosMap.nf"
     script "OikosMap.nf"
 
-    test("Should abort pipeline if inputs are missing") {
+    test("Should exit cleanly if --help flag is set") {
+        when {
+            params {
+                help = true
+                indlist = "null"
+                indir = "null"
+                refseq = "null"
+            }
+        }
+        then {
+            assert workflow.exitStatus == 10
+        }
+    }
+    test("Should throw error if inputs are missing") {
+        when {
+            params {
+                indlist = "null"
+                indir = "null"
+                refseq = "null"
+            }
+        }
+        then {
+            assert workflow.exitStatus != 0
+        }
+    }
+    test("Should throw error if --indir does not exist") {
+        when {
+            params {
+                indlist = "$baseDir/testdata/indlist.txt"
+                indir = "$baseDir/fake/directory"
+                refseq = "$baseDir/testdata/refseq/Chlamydotis_macqueenii_Ctg1_15kbp.fa"
+            }
+        }
+        then {
+            assert workflow.exitStatus != 0
+        }
+    }
+    test("Should throw error if --refseq does not exist") {
         when {
             params {
                 indlist = "$baseDir/testdata/indlist.txt"
                 indir = "$baseDir/testdata/readfiles"
-                refseq = "null"
-                //outdir = "$outputDir"
+                refseq = "$baseDir/fake/refseq.fa"
             }
         }
         then {
-            assert workflow.failed
+            assert workflow.exitStatus != 0
         }
     }
     test("Should execute complete pipeline using testdata") {
@@ -22,7 +58,6 @@ nextflow_pipeline {
                 indlist = "$baseDir/testdata/indlist.txt"
                 indir = "$baseDir/testdata/readfiles"
                 refseq = "$baseDir/testdata/refseq/Chlamydotis_macqueenii_Ctg1_15kbp.fa"
-                //outdir = "$outputDir"
             }
         }
         then {
