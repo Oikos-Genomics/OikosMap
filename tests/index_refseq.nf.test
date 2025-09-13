@@ -1,0 +1,36 @@
+nextflow_process {
+
+    name "Test INDEX_REFSEQ"
+    script "modules/mapping_processes.nf"
+    process "INDEX_REFSEQ"
+
+    test("Should index the refseq if the refseq is not indexed") {
+        when {
+            process {
+                """
+                
+                """
+            }
+
+        }
+        
+        then {
+            assert process.success
+        }
+    }
+
+    test("Should not index the refseq if the refseq is already indexed") {
+        when {
+            process {
+                """
+                
+                """
+            }
+
+        }
+        
+        then {
+            assert process.success
+        }
+    }
+}

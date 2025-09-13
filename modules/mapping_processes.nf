@@ -17,13 +17,6 @@ process INDEX_REFSEQ {
     script:
     println("hello world")
 
-    stub:
-    """
-    mkdir index
-    touch index/seq.bin
-    touch index/info.json
-    touch index/refseq.bin
-    """
 }
 
 //process FASTP {
