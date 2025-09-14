@@ -20,7 +20,7 @@ log.info """\
     .stripIndent()
 
 include { PRINT_HELP; CHECK_PARAMS_FOR_NULL; CHECK_FILE_FOR_EXISTENCE } from './modules/housekeeping_processes.nf'
-include { INDEX_REFSEQ } from './modules/mapping_processes.nf'
+include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX } from './modules/mapping_processes.nf'
 
 help_message='''
     Basic Usage:
@@ -49,6 +49,7 @@ workflow {
     // PARSE INPUTS
     CHECK_PARAMS_FOR_NULL([params.indlist, params.indir, params.refseq])
     CHECK_FILE_FOR_EXISTENCE([params.indlist, params.indir, params.refseq])
+    CHECK_REFSEQ_FOR_INDEX(params.refseq) //FIXME - throws an error if the refseq isn't indexed. But we already index again inside NF, so redundant.
 
     //Add a backslash to --indir if there's not one
     clean_indir = ""
@@ -68,8 +69,8 @@ workflow {
     ]
 
     reads_ch = Channel.fromFilePairs(fq_patterns)
-    reads_ch.view()
 
-    //INDEX_REFSEQ()
-
+    // CHECK FOR INDEXED REFSEQ
+    refseq_ch = Channel.fromPath(params.refseq)
+    BWA_INDEX(refseq_ch)
 }

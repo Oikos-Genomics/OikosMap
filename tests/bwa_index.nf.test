@@ -1,0 +1,32 @@
+nextflow_process {
+
+    name "Test BWA_INDEX"
+    script "modules/mapping_processes.nf"
+    process "BWA_INDEX"
+
+    test("Should index the refseq if the refseq is not indexed") {
+        when {
+            process {
+                """
+                input[0] = Channel.from('$baseDir/testdata/refseq/Chlamydotis_macqueenii_Ctg1_15kbp.fa')
+                """
+            }
+        }
+        then {
+            assert process.success
+            assert process.out.indexed_refseq
+            with (process.out.indexed_refseq) {
+                assert size() == 1
+                with (get(0)) {
+                    assert get(0) ==~ ".*/Chlamydotis_macqueenii_Ctg1_15kbp.fa"
+                    assert get(1) ==~ ".*/Chlamydotis_macqueenii_Ctg1_15kbp.fa.amb"
+                    assert get(2) ==~ ".*/Chlamydotis_macqueenii_Ctg1_15kbp.fa.ann"
+                    assert get(3) ==~ ".*/Chlamydotis_macqueenii_Ctg1_15kbp.fa.bwt"
+                    assert get(4) ==~ ".*/Chlamydotis_macqueenii_Ctg1_15kbp.fa.pac"
+                    assert get(5) ==~ ".*/Chlamydotis_macqueenii_Ctg1_15kbp.fa.sa"
+                }
+            }
+        }
+    }
+
+}
