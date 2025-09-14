@@ -20,7 +20,7 @@ log.info """\
     .stripIndent()
 
 include { PRINT_HELP; CHECK_PARAMS_FOR_NULL; CHECK_FILE_FOR_EXISTENCE } from './modules/housekeeping_processes.nf'
-include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX } from './modules/mapping_processes.nf'
+include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX; FASTP } from './modules/mapping_processes.nf'
 
 help_message='''
     Basic Usage:
@@ -68,9 +68,11 @@ workflow {
         clean_indir+'*{1,2}.fastq',
     ]
 
-    reads_ch = Channel.fromFilePairs(fq_patterns)
+    reads_ch = Channel.fromFilePairs(fq_patterns, flat: true)
 
-    // CHECK FOR INDEXED REFSEQ
     refseq_ch = Channel.fromPath(params.refseq)
     BWA_INDEX(refseq_ch)
+
+    reads_ch.view()
+    FASTP(reads_ch)
 }
