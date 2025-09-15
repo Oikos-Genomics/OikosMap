@@ -11,4 +11,4 @@ eval "$(conda shell.bash hook)"
 ####################################################################################
 ### MAIN
 # Run program
-nextflow run OikosMap.nf -stub-run --indlist ./testdata/indlist.txt --indir ./testdata/readfiles --refseq /Users/keilercollier/Documents/Repos/OikosMap/testdata/refseq/Chlamydotis_macqueenii_Ctg1_15kbp.fa --prefix test #-with-trace -with-report
+nextflow run OikosMap.nf -stub-run --indlist ./testdata/indlist.txt --indir ./testdata/readfiles --refseq ./testdata/refseq/Chlamydotis_macqueenii_Ctg1_15kbp.fa --prefix test #-with-trace -with-report
