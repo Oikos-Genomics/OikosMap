@@ -40,7 +40,7 @@ process BWA_INDEX {
 
 process FASTP {
     tag "Trimming input ${sample_id}"
-    publishDir "${params.prefix}_out/${sample_id}/fastp", mode: 'symlink', overwrite: 'false'
+    publishDir "${params.prefix}_out/individuals/${sample_id}/fastp", mode: 'symlink', overwrite: 'false'
     conda 'fastp'
 
     input:
@@ -62,7 +62,7 @@ process FASTP {
 
 process BWA_MEM {
     tag "Mapping input ${sample_id}"
-    publishDir "${params.prefix}_out/${sample_id}/mapping", mode: 'symlink', overwrite: 'false'
+    publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'symlink', overwrite: 'false'
     conda 'bwa samtools'
 
     input:
@@ -93,11 +93,11 @@ process VCF_CALL {
     conda 'bcftools'
 
     input:
-    tuple val(sample_id), path(read_1), path(read_2), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa), emit: vcf
+    tuple val(sample_id), path(read_1), path(read_2), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa)
     val(prefix)
 
     output:
-    tuple val(prefix), path("${prefix}.vcf.gz")
+    tuple val(prefix), path("${prefix}.vcf.gz"), emit: 'vcf'
 
     script:
     """

@@ -11,7 +11,6 @@ log.info """\
     O I K O S M A P - N F   P I P E L I N E
     ===================================
     Project directory           : $projectDir
-    Input individuals           : ${params.indlist}
     Directory of readfiles      : ${params.indir}
     Input refseq                : ${params.refseq}
     Number of threads           : ${params.threads}
@@ -28,15 +27,13 @@ help_message='''
     
     Options:
         --help          Flag. Show this help message and exit
-        --indlist       Mandatory
         --indir         Mandatory
         --refseq        Mandatory
         --threads       Defaults to 1/2 number on host machine
         --prefix        Name of output; defaults to 'out'. Should not contain whitespace.
 
     Notes:
-        Nearly all options are mandatory.
-        Any errors (of which there are probably many) should be reported to https://github.com/BirdmanRidesAgain/OikosMap/issues.
+        Any errors (of which there are many) should be reported to https://github.com/BirdmanRidesAgain/OikosMap/issues.
     '''
 
 //nextflow.preview.output = true
