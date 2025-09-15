@@ -23,7 +23,7 @@ include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX; FASTP; BWA_MEM; VCF_CALL } from './
 
 help_message='''
     Basic Usage:
-    nextflow run OikosMap.nf --indlist <names_of_inds.txt> --indir </path/to/directory/with/reads/> --refseq <refseq.fa> --prefix <output_prefix>
+    nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --refseq <refseq.fa> --prefix <output_prefix>
     
     Options:
         --help          Flag. Show this help message and exit
@@ -59,14 +59,14 @@ workflow {
 
     // FIXME: The regex needs to find things which have [^R]{1,2}
     fq_patterns = [
-        clean_indir+'*{R1,R2}.fq.gz',
-        clean_indir+'*_{1,2}.fq.gz',
-        clean_indir+'*{R1,R2}.fastq.gz',
-        clean_indir+'*_{1,2}.fastq.gz',
-        clean_indir+'*{R1,R2}.fq',
-        clean_indir+'*_{1,2}.fq',
-        clean_indir+'*{R1,R2}.fastq',
-        clean_indir+'*_{1,2}.fastq',
+        clean_indir+'**{R1,R2}.fq.gz',
+        clean_indir+'**_{1,2}.fq.gz',
+        clean_indir+'**{R1,R2}.fastq.gz',
+        clean_indir+'**_{1,2}.fastq.gz',
+        clean_indir+'**{R1,R2}.fq',
+        clean_indir+'**_{1,2}.fq',
+        clean_indir+'**{R1,R2}.fastq',
+        clean_indir+'**_{1,2}.fastq',
     ]
 
     reads_ch = Channel.fromFilePairs(fq_patterns, flat: true)
@@ -77,7 +77,7 @@ workflow {
     FASTP(reads_ch)
 
     BWA_MEM(FASTP.out.fq_trimmed.combine(BWA_INDEX.out.indexed_refseq), params.threads)
-    VCF_CALL(BWA_MEM.out.bamfile.collect().combine(BWA_INDEX.out.indexed_refseq), params.prefix)
+    VCF_CALL(BWA_MEM.out.bamfile.collect(), BWA_INDEX.out.indexed_refseq, params.prefix)
     
     //publish:
     //fastp_QC = fastp

@@ -6,12 +6,20 @@
 
 def CHECK_REFSEQ_FOR_INDEX(refseq) {
     // CHECK FOR INDEXED REFSEQ
+//    IDX_FLAG = false
     refseq_ch = Channel.fromPath([refseq,refseq+'.{amb,ann,bwt,pac,sa}'])
     refseq_ch.count().map { n ->
     if( n < 6 ) {
+        IDX_FLAG = false
         error("${refseq} is not indexed. Index with `bwa mem ${refseq}`, and rerun.")
-        }
+        //BWA_INDEX(refseq_ch)
+
+        } 
+//        else {
+//            IDX_FLAG = true
+//        }
     }
+//    return( IDX_FLAG )
 }
 
 process BWA_INDEX {
@@ -93,7 +101,8 @@ process VCF_CALL {
     conda 'bcftools'
 
     input:
-    tuple val(sample_id), path(read_1), path(read_2), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa)
+    path(bam)
+    tuple path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa)
     val(prefix)
 
     output:
