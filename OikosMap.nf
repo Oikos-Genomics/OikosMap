@@ -48,8 +48,8 @@ workflow {
     }
 
     // PARSE INPUTS
-    CHECK_PARAMS_FOR_NULL([params.indlist, params.indir, params.refseq])
-    CHECK_FILE_FOR_EXISTENCE([params.indlist, params.indir, params.refseq])
+    CHECK_PARAMS_FOR_NULL([params.indir, params.refseq])
+    CHECK_FILE_FOR_EXISTENCE([params.indir, params.refseq])
     CHECK_REFSEQ_FOR_INDEX(params.refseq) //FIXME - throws an error if the refseq isn't indexed. But we already index again inside NF, so redundant.
     //Add a backslash to --indir if there's not one
     clean_indir = ""
