@@ -66,11 +66,11 @@ process BWA_MEM {
     conda 'bwa samtools'
 
     input:
-    tuple val(sample_id), path(read_1), path(read_2), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa), val(threads)
+    tuple val(sample_id), path(read_1), path(read_2), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa)
     val(threads)
 
     output:
-    tuple val(sample_id), path("${sample_id}_final.bam"), emit: bamfile
+    path("${sample_id}_final.bam"), emit: bamfile
 
     script:
     """
@@ -86,19 +86,23 @@ process BWA_MEM {
     rm ${sample_id}.bam
     """
 }
-//
-//process BCFTOOLS {
-//    tag "Trimming input reads"
-//    cpus 10
-//    conda 'bioconda::fastp'
-//
-//    //input:
-//    //tuple val(sample_id), val(trim_status), path(reads)
-//    //
-//    //output:
-//    //path "${sample_id}_${trim_status}_NanoPlot"
-//
-//    script:
-//    println("hello world")
-//}
+
+process VCF_CALL {
+    tag "Variant-calling all mapped files"
+    publishDir "${params.prefix}_out/vcf", mode: 'symlink', overwrite: 'false'
+    conda 'bcftools'
+
+    input:
+    tuple val(sample_id), path(read_1), path(read_2), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa), emit: vcf
+    val(prefix)
+
+    output:
+    tuple val(prefix), path("${prefix}.vcf.gz")
+
+    script:
+    """
+    FORMAT_STRING=FORMAT/AD,FORMAT/ADF,FORMAT/ADR,FORMAT/DP,FORMAT/SP,INFO/AD,INFO/ADF,INFO/ADR
+    find . -name "*final.bam" | xargs bcftools mpileup -f ${refseq} -q 60 -a "\$FORMAT_STRING" -Ou | bcftools call -m -a GQ,GP --variants-only -Oz -o "${prefix}.vcf.gz"
+    """
+}
 

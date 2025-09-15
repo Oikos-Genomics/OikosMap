@@ -20,7 +20,7 @@ log.info """\
     .stripIndent()
 
 include { PRINT_HELP; CHECK_PARAMS_FOR_NULL; CHECK_FILE_FOR_EXISTENCE } from './modules/housekeeping_processes.nf'
-include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX; FASTP; BWA_MEM } from './modules/mapping_processes.nf'
+include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX; FASTP; BWA_MEM; VCF_CALL } from './modules/mapping_processes.nf'
 
 help_message='''
     Basic Usage:
@@ -80,13 +80,13 @@ workflow {
     FASTP(reads_ch)
 
     BWA_MEM(FASTP.out.fq_trimmed.combine(BWA_INDEX.out.indexed_refseq), params.threads)
-
+    VCF_CALL(BWA_MEM.out.bamfile.collect().combine(BWA_INDEX.out.indexed_refseq), params.prefix)
     
     //publish:
     //fastp_QC = fastp
 
 }
-
+//BWA_MEM.out.bam_ch.collect()
 /*
 output {
     fastp_QC {
