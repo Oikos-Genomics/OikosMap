@@ -13,7 +13,6 @@ def CHECK_REFSEQ_FOR_INDEX(refseq) {
         IDX_FLAG = false
         error("${refseq} is not indexed. Index with `bwa mem ${refseq}`, and rerun.")
         //BWA_INDEX(refseq_ch)
-
         } 
 //        else {
 //            IDX_FLAG = true
@@ -72,6 +71,7 @@ process BWA_MEM {
     tag "Mapping input ${sample_id}"
     publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'symlink', overwrite: 'false'
     conda 'bwa samtools'
+    maxForks 1
 
     input:
     tuple val(sample_id), path(read_1), path(read_2), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa)
