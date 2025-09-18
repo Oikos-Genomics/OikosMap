@@ -59,14 +59,14 @@ workflow {
 
     // FIXME: The regex needs to find things which have [^R]{1,2}
     fq_patterns = [
-        clean_indir+'**{R1,R2}.fq.gz',
-        clean_indir+'**_{1,2}.fq.gz',
-        clean_indir+'**{R1,R2}.fastq.gz',
-        clean_indir+'**_{1,2}.fastq.gz',
-        clean_indir+'**{R1,R2}.fq',
-        clean_indir+'**_{1,2}.fq',
-        clean_indir+'**{R1,R2}.fastq',
-        clean_indir+'**_{1,2}.fastq',
+        clean_indir+'**{R1,R2}*.fq.gz',
+        clean_indir+'**_{1,2}*.fq.gz',
+        clean_indir+'**{R1,R2}*.fastq.gz',
+        clean_indir+'**_{1,2}*.fastq.gz',
+        clean_indir+'**{R1,R2}*.fq',
+        clean_indir+'**_{1,2}*.fq',
+        clean_indir+'**{R1,R2}*.fastq',
+        clean_indir+'**_{1,2}*.fastq',
     ]
 
     reads_ch = Channel.fromFilePairs(fq_patterns, flat: true)
