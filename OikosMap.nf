@@ -60,7 +60,7 @@ workflow {
         } else { clean_indir = params.indir }
 
     fq_patterns = [
-        clean_indir+'**'+params.suffix
+        clean_indir+'**'+params.suffix,
     ]
 
     reads_ch = Channel.fromFilePairs(fq_patterns, flat: true)

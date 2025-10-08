@@ -13,11 +13,13 @@ nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --suffix <_{R1
 - `--indir` is the path to a directory of containing the shortreads to be mapped.
   - Mandatory
   - All files should be gzipped and have the same suffix
+  - It is **strongly** recommended to give all files the suffix `_{R1,R2}.fq.gz`
 - `--suffix`
   - Mandatory
-  - Suffix of the forward and reverse read files
-  - Must match, with the exception of the bracketed string (`{1,2}`)
-  - eg, `.{R1,R2}.fq.gz`, `_{1,2}.fq.gz`, `_{R1,R2}.fastq.gz`...
+  - Suffix of the forward and reverse read files; default of '_{R1,R2}.fq.gz'
+  - Filenames must match, with the exception of the bracketed string
+  - eg, `'.{R1,R2}.fq.gz'`, `'_{1,2}.fq.gz'`, `'_{R1,R2}.fastq.gz'`...
+  - MUST BE QUOTED OR ESCAPED
 - `--refseq` is a `fasta` file you intend to map to
   - Mandatory
 - `--prefix` is the name of the output files.
