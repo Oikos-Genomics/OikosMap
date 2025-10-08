@@ -19,18 +19,20 @@ log.info """\
     .stripIndent()
 
 include { PRINT_HELP; CHECK_PARAMS_FOR_NULL; CHECK_FILE_FOR_EXISTENCE } from './modules/housekeeping_processes.nf'
-include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX; FASTP; BWA_MEM; VCF_CALL } from './modules/mapping_processes.nf'
+include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX; FASTP; BWA_MEM; VCF_CALL_MASS; VCF_CALL_IND } from './modules/mapping_processes.nf'
 
 help_message='''
     Basic Usage:
-    nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --refseq <refseq.fa> --prefix <output_prefix>
+    nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --suffix <_{R1,R2}.fq.gz> --refseq <refseq.fa> --prefix <output_prefix>
     
     Options:
-        --help          Flag. Show this help message and exit
-        --indir         Mandatory
-        --refseq        Mandatory
-        --threads       Defaults to 1/2 number on host machine
-        --prefix        Name of output; defaults to 'out'. Should not contain whitespace.
+        --help          Optional. Show this help message and exit
+        --indir         Mandatory. The directory where all the read files are located
+        --suffix        Mandatory. The suffix of all read files in --indir. Defaults to '_{R1,R2}.fq.gz'
+        --refseq        Mandatory. Your reference sequence
+        --ind_vcfs      Optional. Set to generate single vcfs per individual. May increase speed.
+        --threads       Optional. Defaults to 1/2 number on host machine
+        --prefix        Optional. The name of the output directory. Defaults to 'out'.
 
     Notes:
         Any errors (of which there are many) should be reported to https://github.com/BirdmanRidesAgain/OikosMap/issues.
@@ -57,7 +59,6 @@ workflow {
         clean_indir=params.indir+'/'
         } else { clean_indir = params.indir }
 
-    // FIXME: The regex needs to find things which have [^R]{1,2}
     fq_patterns = [
         clean_indir+'**'+params.suffix
     ]
@@ -70,12 +71,18 @@ workflow {
     FASTP(reads_ch)
 
     BWA_MEM(FASTP.out.fq_trimmed.combine(BWA_INDEX.out.indexed_refseq), params.threads)
-    VCF_CALL(BWA_MEM.out.bamfile.collect(), BWA_INDEX.out.indexed_refseq, params.prefix)
+
+    if ( params.ind_vcfs ) {
+        VCF_CALL_IND(BWA_MEM.out.bamfile_ind.combine(BWA_INDEX.out.indexed_refseq))
+    } else { VCF_CALL_MASS(BWA_MEM.out.bamfile_mass.collect(), BWA_INDEX.out.indexed_refseq, params.prefix)}
     
     //publish:
     //fastp_QC = fastp
 
 }
+
+
+
 //BWA_MEM.out.bam_ch.collect()
 /*
 output {

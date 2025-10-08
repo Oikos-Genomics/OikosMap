@@ -49,6 +49,7 @@ process FASTP {
     tag "Trimming input ${sample_id}"
     publishDir "${params.prefix}_out/individuals/${sample_id}/fastp", mode: 'symlink', overwrite: 'false'
     conda 'fastp'
+    maxForks params.threads
 
     input:
     tuple val(sample_id), path(read_1), path(read_2)
@@ -78,7 +79,9 @@ process BWA_MEM {
     val(threads)
 
     output:
-    path("${sample_id}_final.bam"), emit: bamfile
+    path("${sample_id}_final.bam"), emit: bamfile_mass
+    tuple val(sample_id), path("${sample_id}_final.bam"), emit: bamfile_ind
+    
 
     script:
     """
@@ -95,7 +98,7 @@ process BWA_MEM {
     """
 }
 
-process VCF_CALL {
+process VCF_CALL_MASS {
     tag "Variant-calling all mapped files"
     publishDir "${params.prefix}_out/vcf", mode: 'symlink', overwrite: 'false'
     conda 'bcftools'
@@ -106,12 +109,31 @@ process VCF_CALL {
     val(prefix)
 
     output:
-    tuple val(prefix), path("${prefix}.vcf.gz"), emit: 'vcf'
+    tuple val(prefix), path("${prefix}.vcf.gz"), emit: 'vcf_mass'
 
     script:
     """
     FORMAT_STRING=FORMAT/AD,FORMAT/ADF,FORMAT/ADR,FORMAT/DP,FORMAT/SP,INFO/AD,INFO/ADF,INFO/ADR
     find . -name "*final.bam" | xargs bcftools mpileup -f ${refseq} -q 60 -a "\$FORMAT_STRING" -Ou | bcftools call -m -a GQ,GP --variants-only -Oz -o "${prefix}.vcf.gz"
+    """
+}
+
+process VCF_CALL_IND {
+    tag "Variant-calling ${sample_id}"
+    publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'symlink', overwrite: 'false'
+    conda 'bcftools'
+    
+    input:
+    tuple val(sample_id), path(bam), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa)
+
+    output:
+    path("${sample_id}.vcf.gz"), emit: 'vcf_ind'
+
+    script:
+    """
+    FORMAT_STRING=FORMAT/AD,FORMAT/ADF,FORMAT/ADR,FORMAT/DP,FORMAT/SP,INFO/AD,INFO/ADF,INFO/ADR
+    SAMPLE_ID=\$(basename -s _final.bam ${bam})
+    find . -name "${bam}" | xargs bcftools mpileup -f ${refseq} -q 60 -a "\$FORMAT_STRING" -Ou | bcftools call -m -a GQ,GP --variants-only -Oz -o "\${SAMPLE_ID}.vcf.gz"
     """
 }
 
