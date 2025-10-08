@@ -1,23 +1,27 @@
 # `OikosMap`
-A [NextFlow](https://www.nextflow.io/docs/latest/index.html)-enabled pipeline intended to trim, map and variant-call short read (Illumina or Illumina-like) data to a reference genome, and then call variants.
-Takes a directory of paired read files as input, and outputs one `.bam` file per individual, as well as one merged `.vcf`.
+A [NextFlow](https://www.nextflow.io/docs/latest/index.html)-enabled pipeline intended to trim, map and variant-call paired short read (Illumina or Illumina-like) data to a reference genome, and then call variants.
+Takes a directory of paired read files as input (`fq.gz`), and outputs one `.bam` file per individual, as well as one merged `.vcf`.
 
 ## Quickstart
 
 The pipeline can be run with the following command:
 
 ```
-nextflow run OikosMap.nf --indlist <names_of_inds.txt> --indir </path/to/directory/with/reads/> --refseq <refseq.fa> --prefix <output_prefix>
+nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --R1suffix <_R1.fq.gz> --R2suffix <_R2.fq.gz> --refseq <refseq.fa> --prefix <output_prefix> -with_trace -with-report
 ```
 
-- `--indlist` is a text file containing the names of each individual to be mapped.
-  - Mandatory
 - `--indir` is the path to a directory of containing the shortreads to be mapped.
   - Mandatory
+  - All files should be gzipped and have the same suffix
+- `--R1suffix` and `--R2suffix`
+  - Mandatory
+  - Suffix of the forward and reverse read files; must match
+  - eg, `.R1.fq.gz`/`.R2.fq.gz`, `_1.fq.gz`/`_2.fq.gz`, `_R1.fastq.gz/_R2.fastq.gz`...
 - `--refseq` is a `fasta` file you intend to map to
   - Mandatory
 - `--prefix` is the name of the output files.
-  - Optional; defaults to `out`
+  - Optional
+  - Defaults to `out`
 
 ## Options
 
@@ -28,19 +32,20 @@ The following table documents all options specific to `OikosMap`:
 | Option | Default | Data type | Description |
 | -- | -- | -- | -- |
 | `--help`  | `FALSE` | Flag | Set to print a help message and exit. |
-| `--indlist` | `null` | String | A text file containing the prefix of every paired read file, where each name is on a newline. See [testing](#testing) for an example. **Mandatory**. |
-| `--indir` | `null` | String | The path to the read files you intend to map. Names *must* agree with those in `--indlist`, and files *must* be properly paired. **Mandatory**. |
-| `--refseq` | `null` | String | The fasta file you intend to map to. If unindexed, it will be indexed in-place with `bwa index` and `samtools faidx`. **Mandatory**. |
+| `--indir` | `null` | String | The path to the read files you intend to map. Files *must* be properly paired. **Mandatory**. |
+| `--R1suffix` | `null` | String | The suffix of all R1 files. Must be the same for all files in the directory. **Mandatory**. |
+| `--R2suffix` | `null` | String | The suffix of all R2 files. Must be the same for all files in the directory. **Mandatory**. |
+| `--refseq` | `null` | String | The fasta file you intend to map to. If unindexed, it will be indexed in-place with `bwa index`. **Mandatory**. |
 | `--threads` | `nproc/2` | Int | The number of threads available to the program. Defaults to $\frac{1}{2}$ the number on the host machine. |
 | `--prefix` | `out` | String | The name of the output directory and vcf file. |
 
 
 ## High-level Description
 
-`OikosMap` initially checks that all files in `--indlist` are present in `--indir`, throwing an error if they are not.
-Assuming inputs are fine, it then trims files with `fastp` (v.1.0.1, [Chen et al. 2018](https://academic.oup.com/bioinformatics/article/34/17/i884/5093234)) on default settings.
+`OikosMap` initially searches through the directory specified in `--indir`, searching for paired files matching the suffixes specified in `--R1suffix` and `--R2suffix`.
+Assuming it finds indices, it then trims files with `fastp` (v.1.0.1, [Chen et al. 2018](https://academic.oup.com/bioinformatics/article/34/17/i884/5093234)) on default settings.
 
-If the refseq is not indexed, we use `bwa index` (v.0.7.17-r1188, [Li 2013](https://arxiv.org/abs/1303.3997)) and `samtools faidx`(v.1.18, [Daneck et al. 2021](https://academic.oup.com/gigascience/article/10/2/giab008/6137722)) to do so.
+If the refseq is not indexed, we use `bwa index` (v.0.7.17-r1188, [Li 2013](https://arxiv.org/abs/1303.3997)) to do so.
 Trimmed files are then mapped to the provided indexed `--refseq` with `bwa mem`, and the output bamfiles are then post-processed with `samtools`.
 
 Once mapping finishes, all `bam` files are fed into `bcftools mpileup/call` (v.1.15.1, [Daneck et al. 2021](https://academic.oup.com/gigascience/article/10/2/giab008/6137722)) to produce a vcf.
@@ -48,12 +53,16 @@ Once mapping finishes, all `bam` files are fed into `bcftools mpileup/call` (v.1
 Results are then written to a final output directory (`${prefix}_results/`) for the end-user to consume.
 
 ### Outputs
+OikosMap produces three types of outputs, with the most important outputs being your mapping files (`bam`) and variant call files (`vcf.gz`).
+All outputs are written to `${prefix}_results` in your working directory.
 
-Important outputs are:
-| Description | Path |
-| -- | -- |
-| Mapping files | `${prefix}_results/mapping/${ind}.bam` |
-| Raw vcf | `${prefix}_results/variants/${prefix}.vcf.gz` |
+
+| Name | Description | Path |
+| -- | -- | -- |
+| Trimmed reads | Fastq files processed with `fastp`. These can typically be removed after mapping and variant-calling. | `${prefix}_results/fastp/${ind}.bam` |
+| Trimmed read QC | Reports (`html`, `json`) detailing read quality and trimming statistics. These should be kept. | `${prefix}_results/fastp/${ind}.bam` |
+| Mapping files | Raw pileups generated by mapping data. Among other things, we take heterozygosity from these using [`ANGSD`](https://popgen.dk/angsd/index.php/ANGSD). | `${prefix}_results/mapping/${ind}.bam` |
+| Raw vcf | Variants. This file is completely unfiltered, and contains both SNPs and indels. |`${prefix}_results/variants/${prefix}.vcf.gz` |
 
 
 ### Flowchart
@@ -68,7 +77,7 @@ Important outputs are:
 ### Installation
 
 The pipeline includes two dependencies: [NextFlow](https://www.nextflow.io/docs/latest/getstarted.html), and [Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
-You will need to install all both of these for the pipeline to run.
+You will need to install both of these for the pipeline to run.
 [Docker](https://docs.docker.com/engine/install/) and [Singularity](https://docs.sylabs.io/guides/3.5/user-guide/introduction.html) are not currently supported.
 
 ### Testing
