@@ -12,7 +12,9 @@ log.info """\
     ===================================
     Project directory           : $projectDir
     Directory of readfiles      : ${params.indir}
+    Readfile suffix             : ${params.suffix}
     Input refseq                : ${params.refseq}
+    Individual VCFs             : ${params.ind_vcfs}
     Number of threads           : ${params.threads}
     Output prefix               : ${params.prefix}
     """
