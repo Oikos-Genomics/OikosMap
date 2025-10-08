@@ -7,23 +7,17 @@ Takes a directory of paired read files as input (`fq.gz`), and outputs one `.bam
 The pipeline can be run with the following command:
 
 ```
-<<<<<<< HEAD
-nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --refseq <refseq.fa> --prefix <output_prefix>
+nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --suffix <_{R1,R2}.fq.gz> --refseq <refseq.fa> --prefix <output_prefix> -with_trace -with-report
 ```
 
-
-=======
-nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --R1suffix <_R1.fq.gz> --R2suffix <_R2.fq.gz> --refseq <refseq.fa> --prefix <output_prefix> -with_trace -with-report
-```
-
->>>>>>> documentation
 - `--indir` is the path to a directory of containing the shortreads to be mapped.
   - Mandatory
   - All files should be gzipped and have the same suffix
-- `--R1suffix` and `--R2suffix`
+- `--suffix`
   - Mandatory
-  - Suffix of the forward and reverse read files; must match
-  - eg, `.R1.fq.gz`/`.R2.fq.gz`, `_1.fq.gz`/`_2.fq.gz`, `_R1.fastq.gz/_R2.fastq.gz`...
+  - Suffix of the forward and reverse read files
+  - Must match, with the exception of the bracketed string (`{1,2}`)
+  - eg, `.{R1,R2}.fq.gz`, `_{1,2}.fq.gz`, `_{R1,R2}.fastq.gz`...
 - `--refseq` is a `fasta` file you intend to map to
   - Mandatory
 - `--prefix` is the name of the output files.
@@ -40,8 +34,7 @@ The following table documents all options specific to `OikosMap`:
 | -- | -- | -- | -- |
 | `--help`  | `FALSE` | Flag | Set to print a help message and exit. |
 | `--indir` | `null` | String | The path to the read files you intend to map. Files *must* be properly paired. **Mandatory**. |
-| `--R1suffix` | `null` | String | The suffix of all R1 files. Must be the same for all files in the directory. **Mandatory**. |
-| `--R2suffix` | `null` | String | The suffix of all R2 files. Must be the same for all files in the directory. **Mandatory**. |
+| `--suffix` | `_{R1,R2}.fq.gz` | String | The suffix of all readfiles. Must be the same for all files in the directory. **Mandatory**. |
 | `--refseq` | `null` | String | The fasta file you intend to map to. If unindexed, it will be indexed in-place with `bwa index`. **Mandatory**. |
 | `--threads` | `nproc/2` | Int | The number of threads available to the program. Defaults to $\frac{1}{2}$ the number on the host machine. |
 | `--prefix` | `out` | String | The name of the output directory and vcf file. |
@@ -49,7 +42,7 @@ The following table documents all options specific to `OikosMap`:
 
 ## High-level Description
 
-`OikosMap` initially searches through the directory specified in `--indir`, searching for paired files matching the suffixes specified in `--R1suffix` and `--R2suffix`.
+`OikosMap` initially searches through the directory specified in `--indir`, searching for paired files matching the suffixes specified in `--suffix`.
 Assuming it finds indices, it then trims files with `fastp` (v.1.0.1, [Chen et al. 2018](https://academic.oup.com/bioinformatics/article/34/17/i884/5093234)) on default settings.
 
 If the refseq is not indexed, we use `bwa index` (v.0.7.17-r1188, [Li 2013](https://arxiv.org/abs/1303.3997)) to do so.
