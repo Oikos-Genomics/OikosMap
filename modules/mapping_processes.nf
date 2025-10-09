@@ -5,20 +5,16 @@
 
 
 def CHECK_REFSEQ_FOR_INDEX(refseq) {
-    // CHECK FOR INDEXED REFSEQ
-//    IDX_FLAG = false
-    refseq_ch = Channel.fromPath([refseq,refseq+'.{amb,ann,bwt,pac,sa}'])
-    refseq_ch.count().map { n ->
-    if( n < 6 ) {
-        IDX_FLAG = false
-        error("${refseq} is not indexed. Index with `bwa mem ${refseq}`, and rerun.")
-        //BWA_INDEX(refseq_ch)
-        } 
-//        else {
-//            IDX_FLAG = true
-//        }
-    }
-//    return( IDX_FLAG )
+    def indexFiles = [
+        new File(refseq),
+        new File(refseq + '.amb'),
+        new File(refseq + '.ann'), 
+        new File(refseq + '.bwt'),
+        new File(refseq + '.pac'),
+        new File(refseq + '.sa')
+    ]
+    
+    return indexFiles.every { it.exists() }
 }
 
 process BWA_INDEX {
@@ -29,7 +25,6 @@ process BWA_INDEX {
     path refseq
     
     output:
-    //stdout emit: bwa_check
     tuple path(refseq), path("*amb"), path("*ann"), path("*bwt"), path("*pac"), path("*sa"), emit: indexed_refseq
 
     script:
