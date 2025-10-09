@@ -54,45 +54,36 @@ workflow {
     // PARSE INPUTS
     CHECK_PARAMS_FOR_NULL([params.indir, params.refseq])
     CHECK_FILE_FOR_EXISTENCE([params.indir, params.refseq])
-    //CHECK_REFSEQ_FOR_INDEX(params.refseq) //FIXME - throws an error if the refseq isn't indexed. But we already index again inside NF, so redundant.
+    IS_REFSEQ_INDEXED=CHECK_REFSEQ_FOR_INDEX(params.refseq)
+
+    if ( IS_REFSEQ_INDEXED) {
+        indexed_refseq_ch=Channel.fromPath([params.refseq,params.refseq+'.{amb,ann,bwt,pac,sa}']).collect()
+        } else {
+            indexed_refseq_ch=BWA_INDEX(Channel.fromPath(params.refseq))
+        }
+
     //Add a backslash to --indir if there's not one
     clean_indir = ""
     if ( params.indir.substring(params.indir.length() - 1, params.indir.length()) != '/' ) { 
         clean_indir=params.indir+'/'
         } else { clean_indir = params.indir }
-
     fq_patterns = [
         clean_indir+'**'+params.suffix,
     ]
-
     reads_ch = Channel.fromFilePairs(fq_patterns, flat: true)
-    refseq_ch = Channel.fromPath(params.refseq)
 
-    //MAP_AND_VARCALL(reads_ch, refseq_ch)
-    BWA_INDEX(refseq_ch)
+    // TRIM, MAP, VARIANT-CALL
     FASTP(reads_ch)
-
-    BWA_MEM(FASTP.out.fq_trimmed.combine(BWA_INDEX.out.indexed_refseq), params.threads)
+    BWA_MEM(FASTP.out.fq_trimmed.combine(indexed_refseq_ch), params.threads)
 
     if ( params.ind_vcfs ) {
-        VCF_CALL_IND(BWA_MEM.out.bamfile_ind.combine(BWA_INDEX.out.indexed_refseq))
-    } else { VCF_CALL_MASS(BWA_MEM.out.bamfile_mass.collect(), BWA_INDEX.out.indexed_refseq, params.prefix)}
-    
-    //publish:
-    //fastp_QC = fastp
+        VCF_CALL_IND(BWA_MEM.out.bamfile_ind.combine(indexed_refseq_ch))
+    } else { VCF_CALL_MASS(BWA_MEM.out.bamfile_mass.collect(), indexed_refseq_ch, params.prefix)}
 
-}
+   //publish:
+   //fastp_QC = fastp
 
-
-
-//BWA_MEM.out.bam_ch.collect()
 /*
-output {
-    fastp_QC {
-
-    }
-}
-
 workflow MAP_AND_VARCALL {
     take:
     reads
@@ -104,5 +95,6 @@ workflow MAP_AND_VARCALL {
 
     emit:
     fastp = FASTP.out.fq_QC
-}
 */
+}
+
