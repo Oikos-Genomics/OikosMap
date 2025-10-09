@@ -65,7 +65,7 @@ process FASTP {
 
 process BWA_MEM {
     tag "Mapping input ${sample_id}"
-    publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'symlink', overwrite: 'false'
+    publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'copy', overwrite: 'false'
     conda 'bwa samtools'
     maxForks 1
 
@@ -95,7 +95,7 @@ process BWA_MEM {
 
 process VCF_CALL_MASS {
     tag "Variant-calling all mapped files"
-    publishDir "${params.prefix}_out/vcf", mode: 'symlink', overwrite: 'false'
+    publishDir "${params.prefix}_out/vcf", mode: 'move', overwrite: 'false'
     conda 'bcftools'
 
     input:
@@ -115,7 +115,7 @@ process VCF_CALL_MASS {
 
 process VCF_CALL_IND {
     tag "Variant-calling ${sample_id}"
-    publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'symlink', overwrite: 'false'
+    publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'move', overwrite: 'false'
     conda 'bcftools'
     
     input:

@@ -14,4 +14,4 @@ eval "$(conda shell.bash hook)"
 conda activate nextflow
 
 PREFIX=test
-nextflow run OikosMap.nf --indir ./testdata/readfiles --refseq ./testdata/refseq/indexed/Chlamydotis_macqueenii_Ctg1_15kbp.fa --prefix "$PREFIX"
+nextflow run OikosMap.nf --indir ./testdata/readfiles --refseq ./testdata/refseq/non_indexed/Chlamydotis_macqueenii_Ctg1_15kbp.fa --prefix "$PREFIX"
