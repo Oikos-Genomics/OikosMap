@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+from argparse import ArgumentParser
+import subprocess
+
+def main():
+    ### DEFINE AND CHECK ARGS
+    parser = ArgumentParser(description="Takes an input directory of paired fastq files, maps them to a refseq, and variant-calls them with bcftools.")
+    parser.add_argument('-i','--indir', type=str, required=True)
+    parser.add_argument('-r','--refseq', type=str, required=True)
+    parser.add_argument('-t','--threads', type=int)
+    parser.add_argument('-pro','--profile', type=str)
+    parser.add_argument('-wt','--with_trace', type=str)
+    parser.add_argument('-wr','--with_report', type=str)
+    parser.add_argument('-pre','--prefix', type=str, default='out')
+    parser.add_argument('-s','--suffix', type=str, default='_{R1,R2}.fq.gz')
+    parser.add_argument('-iv','--ind_vcfs', type=str, default='false')
+    args = parser.parse_args()
+
+
+    nf_variables = ['profile', 'with_trace', 'with_report']
+    # Build a single command string from all provided arguments
+    command_items = ['./main.nf']
+    for name, value in vars(args).items():
+        if value is None:
+            continue
+        # profile is a nextflow variable, and needs a single quote
+        if str(name) in nf_variables:
+            command_items.append(f'-{name}')
+            command_items.append(str(value))
+            continue
+        # FIXME - find a way to translate python-style bools to NF-style bools
+        # You need 'True' to be 'true', and 'False' to be 'false
+        #if (value == True | value == False):
+        #    command_items.append(f"--{name}")
+        #    command_items.append(str(value))
+        #    continue
+        command_items.append(f"--{name}")
+        command_items.append(str(value))
+    command = " ".join(command_items)
+    # Run the pipeline
+    subprocess.run(command.split())
+
+# If this is being imported
+if __name__=="__main__":
+    main()
