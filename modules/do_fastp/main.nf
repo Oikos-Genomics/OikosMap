@@ -1,7 +1,6 @@
 process DO_FASTP {
     tag "Trimming input ${sample_id}"
     publishDir "${params.prefix}_out/individuals/${sample_id}/fastp", mode: 'symlink', overwrite: 'false'
-    conda 'fastp'
     maxForks params.threads
 
     input:

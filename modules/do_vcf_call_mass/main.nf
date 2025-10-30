@@ -1,7 +1,6 @@
 process DO_VCF_CALL_MASS {
     tag "Variant-calling all mapped files"
     publishDir "${params.prefix}_out/vcf", mode: 'move', overwrite: 'false'
-    conda 'bcftools'
 
     input:
     path(bam)

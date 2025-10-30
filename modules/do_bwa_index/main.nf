@@ -1,6 +1,5 @@
 process DO_BWA_INDEX {
     tag "Indexing ${refseq}"
-    conda 'bwa'
 
     input:
     path refseq

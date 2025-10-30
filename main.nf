@@ -52,10 +52,10 @@ workflow {
     CHECK_FILE_FOR_EXISTENCE([params.indir, params.refseq])
     IS_REFSEQ_INDEXED=CHECK_REFSEQ_FOR_INDEX(params.refseq)
 
-    if ( IS_REFSEQ_INDEXED) {
-        indexed_refseq_ch=Channel.fromPath([params.refseq,params.refseq+'.{amb,ann,bwt,pac,sa}']).collect()
+    if ( IS_REFSEQ_INDEXED ) {
+        indexed_refseq_ch=channel.fromPath([params.refseq,params.refseq+'.{amb,ann,bwt,pac,sa}']).collect()
         } else {
-            indexed_refseq_ch=BWA_INDEX(Channel.fromPath(params.refseq))
+            indexed_refseq_ch=DO_BWA_INDEX(channel.fromPath(params.refseq))
         }
 
     //Add a backslash to --indir if there's not one
@@ -66,15 +66,15 @@ workflow {
     fq_patterns = [
         clean_indir+'**'+params.suffix,
     ]
-    reads_ch = Channel.fromFilePairs(fq_patterns, flat: true)
+    reads_ch = channel.fromFilePairs(fq_patterns, flat: true)
 
     // TRIM, MAP, VARIANT-CALL
-    FASTP(reads_ch)
-    BWA_MEM(FASTP.out.fq_trimmed.combine(indexed_refseq_ch), params.threads)
+    DO_FASTP(reads_ch)
+    DO_BWA_MEM(DO_FASTP.out.fq_trimmed.combine(indexed_refseq_ch), params.threads)
 
     if ( params.ind_vcfs ) {
-        VCF_CALL_IND(BWA_MEM.out.bamfile_ind.combine(indexed_refseq_ch))
-    } else { VCF_CALL_MASS(BWA_MEM.out.bamfile_mass.collect(), indexed_refseq_ch, params.prefix)}
+        DO_VCF_CALL_IND(DO_BWA_MEM.out.bamfile_ind.combine(indexed_refseq_ch))
+    } else { DO_VCF_CALL_MASS(DO_BWA_MEM.out.bamfile_mass.collect(), indexed_refseq_ch, params.prefix)}
 
    //publish:
    //fastp_QC = fastp
