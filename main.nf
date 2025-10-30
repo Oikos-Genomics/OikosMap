@@ -1,3 +1,7 @@
+#!/usr/bin/env nextflow
+
+nextflow.enable.dsl = 2
+
 /*
  * Keiler Collier
  * OikosMap V1 - used to map and variant-call shortreads.
@@ -7,7 +11,30 @@
  * Pipeline input params supplied from nextflow.config
  */
 
-log.info """\
+// import modules
+include { PRINT_HELP } from './modules/print_help'
+include { CHECK_PARAMS_FOR_NULL } from './modules/check_params_for_null'
+include { CHECK_FILE_FOR_EXISTENCE } from './modules/check_file_for_existence'
+include { CHECK_REFSEQ_FOR_INDEX } from './modules/check_refseq_for_index'
+include { DO_BWA_INDEX } from './modules/do_bwa_index'
+include { DO_FASTP } from './modules/do_fastp'
+include { DO_BWA_MEM } from './modules/do_bwa_mem'
+include { DO_VCF_CALL_MASS } from './modules/do_vcf_call_mass'
+include { DO_VCF_CALL_IND } from './modules/do_vcf_call_ind'
+
+
+//nextflow.preview.output = true
+
+workflow {
+    //Main workflow verifies inputs to ensure quality
+    main:
+    // INTRODUCTORY BEHAVIOR
+    if (params.help) {
+        PRINT_HELP()
+        exit 10
+    }
+
+    log.info """\
     O I K O S M A P - N F   P I P E L I N E
     ===================================
     Project directory           : $projectDir
@@ -19,37 +46,6 @@ log.info """\
     Output prefix               : ${params.prefix}
     """
     .stripIndent()
-
-include { PRINT_HELP; CHECK_PARAMS_FOR_NULL; CHECK_FILE_FOR_EXISTENCE } from './modules/housekeeping_processes.nf'
-include { CHECK_REFSEQ_FOR_INDEX; BWA_INDEX; FASTP; BWA_MEM; VCF_CALL_MASS; VCF_CALL_IND } from './modules/mapping_processes.nf'
-
-help_message='''
-    Basic Usage:
-    nextflow run OikosMap.nf --indir </path/to/directory/with/reads/> --suffix <_{R1,R2}.fq.gz> --refseq <refseq.fa> --prefix <output_prefix>
-    
-    Options:
-        --help          Optional. Show this help message and exit
-        --indir         Mandatory. The directory where all the read files are located
-        --suffix        Mandatory. The suffix of all read files in --indir. Defaults to '_{R1,R2}.fq.gz'
-        --refseq        Mandatory. Your reference sequence
-        --ind_vcfs      Optional. Set to generate single vcfs per individual. May increase speed.
-        --threads       Optional. Defaults to 1/2 number on host machine
-        --prefix        Optional. The name of the output directory. Defaults to 'out'.
-
-    Notes:
-        Any errors (of which there are many) should be reported to https://github.com/BirdmanRidesAgain/OikosMap/issues.
-    '''
-
-//nextflow.preview.output = true
-
-workflow {
-    //Main workflow verifies inputs to ensure quality
-    main:
-    // INTRODUCTORY BEHAVIOR
-    if (params.help) {
-        PRINT_HELP(help_message)
-        exit 10
-    }
 
     // PARSE INPUTS
     CHECK_PARAMS_FOR_NULL([params.indir, params.refseq])
