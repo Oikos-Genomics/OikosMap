@@ -1,6 +1,5 @@
 process DO_BWA_MEM {
     tag "Mapping input ${sample_id}"
-    publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'copy', overwrite: 'false'
     maxForks 1
 
     input:

@@ -1,6 +1,5 @@
 process DO_FASTP {
     tag "Trimming input ${sample_id}"
-    publishDir "${params.prefix}_out/individuals/${sample_id}/fastp", mode: 'symlink', overwrite: 'false'
     maxForks params.threads
 
     input:

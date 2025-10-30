@@ -19,8 +19,7 @@ include { CHECK_REFSEQ_FOR_INDEX } from './modules/check_refseq_for_index'
 include { DO_BWA_INDEX } from './modules/do_bwa_index'
 include { DO_FASTP } from './modules/do_fastp'
 include { DO_BWA_MEM } from './modules/do_bwa_mem'
-include { DO_VCF_CALL_MASS } from './modules/do_vcf_call_mass'
-include { DO_VCF_CALL_IND } from './modules/do_vcf_call_ind'
+include { CALL_VARIANTS } from './modules/call_variants'
 
 
 //nextflow.preview.output = true
@@ -70,27 +69,17 @@ workflow {
 
     // TRIM, MAP, VARIANT-CALL
     DO_FASTP(reads_ch)
-    DO_BWA_MEM(DO_FASTP.out.fq_trimmed.combine(indexed_refseq_ch), params.threads)
+    map_ch = DO_BWA_MEM(DO_FASTP.out.fq_trimmed.combine(indexed_refseq_ch), params.threads)
 
-    if ( params.ind_vcfs ) {
-        DO_VCF_CALL_IND(DO_BWA_MEM.out.bamfile_ind.combine(indexed_refseq_ch))
-    } else { DO_VCF_CALL_MASS(DO_BWA_MEM.out.bamfile_mass.collect(), indexed_refseq_ch, params.prefix)}
+    vcf_ch = CALL_VARIANTS(map_ch.bamfile_ind, map_ch.bamfile_mass, indexed_refseq_ch, params.prefix, params.ind_vcfs)
 
-   //publish:
-   //fastp_QC = fastp
+    publish:
+    bams = map_ch.bamfile_ind
+    vcf = vcf_ch
+}
 
-/*
-workflow MAP_AND_VARCALL {
-    take:
-    reads
-    refseq
-
-    main:
-    BWA_INDEX(refseq)
-    FASTP(reads)
-
-    emit:
-    fastp = FASTP.out.fq_QC
-*/
+output {
+    bams {}
+    vcf {}
 }
 

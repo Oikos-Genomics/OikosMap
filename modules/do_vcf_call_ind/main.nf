@@ -1,6 +1,5 @@
 process DO_VCF_CALL_IND {
     tag "Variant-calling ${sample_id}"
-    publishDir "${params.prefix}_out/individuals/${sample_id}/mapping", mode: 'move', overwrite: 'false'
     
     input:
     tuple val(sample_id), path(bam), path(refseq), path(amb), path(ann), path(btw), path(pac), path(sa)
